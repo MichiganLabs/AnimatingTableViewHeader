@@ -34,6 +34,7 @@ class ViewController: UIViewController {
     }
 
     override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
         self.headerHeightConstraint.constant = self.maxHeaderHeight
         updateHeader()
     }
