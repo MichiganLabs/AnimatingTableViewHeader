@@ -61,22 +61,25 @@ extension ViewController: UITableViewDelegate {
         let isScrollingDown = scrollDiff > 0 && scrollView.contentOffset.y > absoluteTop
         let isScrollingUp = scrollDiff < 0 && scrollView.contentOffset.y < absoluteBottom
 
-        // Calculate new header height
-        var newHeight = self.headerHeightConstraint.constant
-        if isScrollingDown {
-            newHeight = max(self.minHeaderHeight, self.headerHeightConstraint.constant - abs(scrollDiff))
-        } else if isScrollingUp {
-            newHeight = min(self.maxHeaderHeight, self.headerHeightConstraint.constant + abs(scrollDiff))
-        }
+        if canAnimateHeader(scrollView) {
 
-        // Header needs to animate
-        if newHeight != self.headerHeightConstraint.constant {
-            self.headerHeightConstraint.constant = newHeight
-            self.updateHeader()
-            self.setScrollPosition(self.previousScrollOffset)
-        }
+            // Calculate new header height
+            var newHeight = self.headerHeightConstraint.constant
+            if isScrollingDown {
+                newHeight = max(self.minHeaderHeight, self.headerHeightConstraint.constant - abs(scrollDiff))
+            } else if isScrollingUp {
+                newHeight = min(self.maxHeaderHeight, self.headerHeightConstraint.constant + abs(scrollDiff))
+            }
 
-        self.previousScrollOffset = scrollView.contentOffset.y
+            // Header needs to animate
+            if newHeight != self.headerHeightConstraint.constant {
+                self.headerHeightConstraint.constant = newHeight
+                self.updateHeader()
+                self.setScrollPosition(self.previousScrollOffset)
+            }
+
+            self.previousScrollOffset = scrollView.contentOffset.y
+        }
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
@@ -98,6 +101,14 @@ extension ViewController: UITableViewDelegate {
         } else {
             self.collapseHeader()
         }
+    }
+
+    func canAnimateHeader(_ scrollView: UIScrollView) -> Bool {
+        // Calculate the size of the scrollView when header is collapsed
+        let scrollViewMaxHeight = scrollView.frame.height + self.headerHeightConstraint.constant - minHeaderHeight
+
+        // Make sure that when header is collapsed, there is still room to scroll
+        return scrollView.contentSize.height > scrollViewMaxHeight
     }
 
     func collapseHeader() {
