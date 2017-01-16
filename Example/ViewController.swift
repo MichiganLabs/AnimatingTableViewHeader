@@ -28,7 +28,7 @@ class ViewController: UIViewController {
         self.tableView.dataSource = self
     }
 
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.headerHeightConstraint.constant = self.maxHeaderHeight
         updateHeader()
@@ -36,15 +36,15 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: UITableViewDataSource {
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
 
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 40
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     }
 
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell()
         cell.textLabel!.text = "Cell \(indexPath.row)"
         return cell
@@ -52,7 +52,7 @@ extension ViewController: UITableViewDataSource {
 }
 
 extension ViewController: UITableViewDelegate {
-    func scrollViewDidScroll(scrollView: UIScrollView) {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let scrollDiff = scrollView.contentOffset.y - self.previousScrollOffset
 
         let absoluteTop: CGFloat = 0;
@@ -79,11 +79,11 @@ extension ViewController: UITableViewDelegate {
         self.previousScrollOffset = scrollView.contentOffset.y
     }
 
-    func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         self.scrollViewDidStopScrolling()
     }
 
-    func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             self.scrollViewDidStopScrolling()
         }
@@ -102,7 +102,7 @@ extension ViewController: UITableViewDelegate {
 
     func collapseHeader() {
         self.view.layoutIfNeeded()
-        UIView.animateWithDuration(0.2, animations: {
+        UIView.animate(withDuration: 0.2, animations: {
             self.headerHeightConstraint.constant = self.minHeaderHeight
             self.updateHeader()
             self.view.layoutIfNeeded()
@@ -111,15 +111,15 @@ extension ViewController: UITableViewDelegate {
 
     func expandHeader() {
         self.view.layoutIfNeeded()
-        UIView.animateWithDuration(0.2, animations: {
+        UIView.animate(withDuration: 0.2, animations: {
             self.headerHeightConstraint.constant = self.maxHeaderHeight
             self.updateHeader()
             self.view.layoutIfNeeded()
         })
     }
 
-    func setScrollPosition(position: CGFloat) {
-        self.tableView.contentOffset = CGPointMake(self.tableView.contentOffset.x, position)
+    func setScrollPosition(_ position: CGFloat) {
+        self.tableView.contentOffset = CGPoint(x: self.tableView.contentOffset.x, y: position)
     }
 
     func updateHeader() {
