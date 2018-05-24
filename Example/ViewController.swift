@@ -13,19 +13,24 @@ class ViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var headerHeightConstraint: NSLayoutConstraint!
 
+    @IBOutlet weak var titleTopConstraint: NSLayoutConstraint!
+    @IBOutlet weak var logoImageView: UIImageView!
+
     let maxHeaderHeight: CGFloat = 88;
     let minHeaderHeight: CGFloat = 44;
 
     var previousScrollOffset: CGFloat = 0;
 
-    @IBOutlet weak var titleTopConstraint: NSLayoutConstraint!
-    @IBOutlet weak var logoImageView: UIImageView!
+    var isAnimating = false
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
 
         self.tableView.delegate = self
         self.tableView.dataSource = self
+
+        self.tableView.contentInset.top = maxHeaderHeight
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -53,29 +58,36 @@ extension ViewController: UITableViewDataSource {
 
 extension ViewController: UITableViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard !isAnimating else { return }
+
         let scrollDiff = scrollView.contentOffset.y - self.previousScrollOffset
 
         let absoluteTop: CGFloat = 0;
         let absoluteBottom: CGFloat = scrollView.contentSize.height - scrollView.frame.size.height;
 
-        let isScrollingDown = scrollDiff > 0 && scrollView.contentOffset.y > absoluteTop
+        let isScrollingDown = scrollDiff > 0 && scrollView.contentOffset.y + scrollView.contentInset.top > absoluteTop
         let isScrollingUp = scrollDiff < 0 && scrollView.contentOffset.y < absoluteBottom
 
         if canAnimateHeader(scrollView) {
 
             // Calculate new header height
             var newHeight = self.headerHeightConstraint.constant
-            if isScrollingDown {
-                newHeight = max(self.minHeaderHeight, self.headerHeightConstraint.constant - abs(scrollDiff))
-            } else if isScrollingUp {
-                newHeight = min(self.maxHeaderHeight, self.headerHeightConstraint.constant + abs(scrollDiff))
+            if scrollView.contentOffset.y + scrollView.contentInset.top > 0 {
+                // height when not at the top
+                if isScrollingDown {
+                    newHeight = max(self.minHeaderHeight, self.headerHeightConstraint.constant - abs(scrollDiff))
+                } else if isScrollingUp {
+                    newHeight = min(self.maxHeaderHeight, self.headerHeightConstraint.constant + abs(scrollDiff))
+                }
+            } else {
+                // height when at the top
+                newHeight = abs(scrollView.contentOffset.y)
             }
 
             // Header needs to animate
             if newHeight != self.headerHeightConstraint.constant {
                 self.headerHeightConstraint.constant = newHeight
                 self.updateHeader()
-                self.setScrollPosition(self.previousScrollOffset)
             }
 
             self.previousScrollOffset = scrollView.contentOffset.y
@@ -113,24 +125,38 @@ extension ViewController: UITableViewDelegate {
 
     func collapseHeader() {
         self.view.layoutIfNeeded()
-        UIView.animate(withDuration: 0.2, animations: {
-            self.headerHeightConstraint.constant = self.minHeaderHeight
-            self.updateHeader()
-            self.view.layoutIfNeeded()
-        })
+        let diff = self.headerHeightConstraint.constant - self.minHeaderHeight
+        self.isAnimating = true
+        UIView.animate(
+            withDuration: 0.2,
+            animations: {
+                self.headerHeightConstraint.constant = self.minHeaderHeight
+                self.tableView.contentOffset.y += diff
+                self.updateHeader()
+                self.view.layoutIfNeeded()
+            },
+            completion: { _ in
+                self.isAnimating = false
+            }
+        )
     }
 
     func expandHeader() {
         self.view.layoutIfNeeded()
-        UIView.animate(withDuration: 0.2, animations: {
-            self.headerHeightConstraint.constant = self.maxHeaderHeight
-            self.updateHeader()
-            self.view.layoutIfNeeded()
-        })
-    }
-
-    func setScrollPosition(_ position: CGFloat) {
-        self.tableView.contentOffset = CGPoint(x: self.tableView.contentOffset.x, y: position)
+        let diff = self.maxHeaderHeight - self.headerHeightConstraint.constant
+        self.isAnimating = true
+        UIView.animate(
+            withDuration: 0.2,
+            animations: {
+                self.headerHeightConstraint.constant = self.maxHeaderHeight
+                self.tableView.contentOffset.y -= diff
+                self.updateHeader()
+                self.view.layoutIfNeeded()
+            },
+            completion: { _ in
+                self.isAnimating = false
+            }
+        )
     }
 
     func updateHeader() {
