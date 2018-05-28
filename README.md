@@ -6,3 +6,5 @@ for details on how this project works!
 
 ## Additional features not covered in the blog:
 * [Stretchy Header](https://github.com/MichiganLabs/AnimatingTableViewHeader/tree/feature/stretchy-header)
+
+![stretchy header](https://media.giphy.com/media/wHLJ6pU2kpWNRjBSVA/giphy.gif)
