@@ -13,10 +13,14 @@ class ViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var headerHeightConstraint: NSLayoutConstraint!
 
-    let maxHeaderHeight: CGFloat = 88;
-    let minHeaderHeight: CGFloat = 44;
+    let maxHeaderHeight: CGFloat = 88
+    let minHeaderHeight: CGFloat = 44
 
-    var previousScrollOffset: CGFloat = 0;
+    /// The last known scroll position
+    var previousScrollOffset: CGFloat = 0
+
+    /// The last known height of the scroll view content
+    var previousScrollViewHeight: CGFloat = 0
 
     @IBOutlet weak var titleTopConstraint: NSLayoutConstraint!
     @IBOutlet weak var logoImageView: UIImageView!
@@ -26,12 +30,15 @@ class ViewController: UIViewController {
 
         self.tableView.delegate = self
         self.tableView.dataSource = self
+
+        // Start with an initial value for the content size
+        self.previousScrollViewHeight = self.tableView.contentSize.height
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.headerHeightConstraint.constant = self.maxHeaderHeight
-        updateHeader()
+        self.updateHeader()
     }
 }
 
@@ -53,7 +60,17 @@ extension ViewController: UITableViewDataSource {
 
 extension ViewController: UITableViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let scrollDiff = scrollView.contentOffset.y - self.previousScrollOffset
+        // Always update the previous values
+        defer {
+            self.previousScrollViewHeight = scrollView.contentSize.height
+            self.previousScrollOffset = scrollView.contentOffset.y
+        }
+
+        let heightDiff = scrollView.contentSize.height - self.previousScrollViewHeight
+        let scrollDiff = (scrollView.contentOffset.y - self.previousScrollOffset)
+
+        // If the scroll was caused by the height of the scroll view changing, we want to do nothing.
+        guard heightDiff == 0 else { return }
 
         let absoluteTop: CGFloat = 0;
         let absoluteBottom: CGFloat = scrollView.contentSize.height - scrollView.frame.size.height;
@@ -77,8 +94,6 @@ extension ViewController: UITableViewDelegate {
                 self.updateHeader()
                 self.setScrollPosition(self.previousScrollOffset)
             }
-
-            self.previousScrollOffset = scrollView.contentOffset.y
         }
     }
 
