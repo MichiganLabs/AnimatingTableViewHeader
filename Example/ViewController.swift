@@ -73,7 +73,12 @@ extension ViewController: UITableViewDelegate {
         guard heightDiff == 0 else { return }
 
         let absoluteTop: CGFloat = 0;
-        let absoluteBottom: CGFloat = scrollView.contentSize.height - scrollView.frame.size.height;
+        let absoluteBottom: CGFloat = (
+            collectionView.contentSize.height
+            - collectionView.frame.size.height
+            + collectionView.contentInset.bottom
+            + collectionView.layoutMargins.bottom
+        )
 
         let isScrollingDown = scrollDiff > 0 && scrollView.contentOffset.y > absoluteTop
         let isScrollingUp = scrollDiff < 0 && scrollView.contentOffset.y < absoluteBottom
